@@ -1,6 +1,6 @@
-# ClubAudioAnalyzer — Standalone Windows App
+# AudioEnergyAnalyzer — Standalone Windows App
 
-ClubAudioAnalyzer v38 baseline: a local Windows desktop application for analyzing audio samples against a 10-band reference JSON. This repository is for the **standalone Python application**; the separate `tossizm/ClubAudioAnalyzerEQ` repository is for the JUCE VST3 plug-in and should not be mixed into this source tree.
+AudioEnergyAnalyzer v38 baseline: a local Windows desktop application for analyzing audio samples against a 10-band reference JSON. This repository is for the **standalone Python application**; the separate `tossizm/AudioEnergyAnalyzerEQ` repository is for the JUCE VST3 plug-in and should not be mixed into this source tree.
 
 ## Current source layout
 
@@ -38,7 +38,7 @@ For a GUI session, `QT_QPA_PLATFORM=offscreen` is only needed for headless testi
 
 ## Build the Windows EXE
 
-Double-click `build_windows.bat`. The script installs requirements, runs pytest, and creates `dist/ClubAudioAnalyzer.exe`; it also copies the `config` and `ffmpeg` folders when present. The app uses PyAV for in-process audio decoding. Do not commit `.venv/`, `build/`, `dist/`, `__pycache__/`, `.pytest_cache/`, or generated executables to the source repository.
+Double-click `build_windows.bat`. The script installs requirements, runs pytest, and creates `dist/AudioEnergyAnalyzer.exe`; it also copies the `config` and `ffmpeg` folders when present. The app uses PyAV for in-process audio decoding. Do not commit `.venv/`, `build/`, `dist/`, `__pycache__/`, `.pytest_cache/`, or generated executables to the source repository.
 
 ## Analysis behavior notes
 
@@ -59,7 +59,7 @@ Double-click `build_windows.bat`. The script installs requirements, runs pytest,
 
 ## GitHub workflow
 
-Use a separate repository named `ClubAudioAnalyzer` for this standalone project. Create a branch for each change, commit focused changes, and open a pull request into `main`. Do not merge until CI passes and the Windows GUI validation above is complete. The included Actions workflow runs Python tests; it does **not** prove that the packaged EXE works or replace visual/DAW/manual testing.
+Use a separate repository named `AudioEnergyAnalyzer` for this standalone project. Create a branch for each change, commit focused changes, and open a pull request into `main`. Do not merge until CI passes and the Windows GUI validation above is complete. The included Actions workflow runs tests, builds the Windows EXE, and performs a startup smoke test. This still does not replace visual/DAW/manual testing.
 
 ## Security and files
 
