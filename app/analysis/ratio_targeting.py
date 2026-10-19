@@ -47,6 +47,21 @@ def default_ratio_from_target_db(target_db):
     return power / total * 100.0
 
 
+def target_db_from_ratio(target_pct, reference_target_db):
+    """Convert normalized energy percentages back to target dB.
+
+    Percentages determine relative levels, not a unique absolute dB offset.
+    Preserve the selected reference's mean target_db while replacing its
+    relative band balance, so the round-trip percentage ratio remains exact.
+    """
+    pct = validate_ratio_target(target_pct)
+    reference = np.asarray(reference_target_db, dtype=float)
+    if reference.shape != (len(BANDS),) or not np.all(np.isfinite(reference)):
+        raise ValueError("参照 target_db は10個の有限値が必要です。")
+    raw_db = 10.0 * np.log10(np.maximum(pct, 1e-12) / 100.0)
+    return raw_db + (float(np.mean(reference)) - float(np.mean(raw_db)))
+
+
 def _spectrum_context(x, sr):
     mono = np.mean(np.asarray(x, dtype=float), axis=1)
     nperseg = min(65536, len(mono))
