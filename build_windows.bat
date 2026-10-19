@@ -30,11 +30,21 @@ if errorlevel 1 (
     exit /b 1
 )
 
+echo.
+echo Diagnosing Python package resolution before PyInstaller...
+python -c "import app, app.gui, importlib.util; print('app origin:', app.__file__); print('app.gui origin:', app.gui.__file__); spec=importlib.util.find_spec('app.gui.main_window'); print('app.gui.main_window spec:', None if spec is None else spec.origin); raise SystemExit(spec is None)"
+if errorlevel 1 (
+    echo FAILED: Python cannot resolve app.gui.main_window before packaging.
+    if not defined CI pause
+    exit /b 1
+)
+
 if exist "dist" rmdir /s /q "dist"
 if exist "build" rmdir /s /q "build"
 pyinstaller --noconfirm --clean --onefile --windowed ^
   --name AudioEnergyAnalyzer ^
   --paths "." ^
+  --log-level DEBUG ^
   --collect-all av ^
   --collect-submodules app ^
   --hidden-import app.gui.main_window ^
@@ -51,6 +61,24 @@ if not exist "dist\AudioEnergyAnalyzer.exe" (
     if not defined CI pause
     exit /b 1
 )
+
+echo.
+echo Verifying the actual PyInstaller archive...
+if not exist "build" mkdir "build"
+pyi-archive_viewer -l -r "dist\AudioEnergyAnalyzer.exe" > "build\archive_contents.txt"
+if errorlevel 1 (
+    echo FAILED: Could not inspect the generated EXE archive.
+    if not defined CI pause
+    exit /b 1
+)
+findstr /i /c:"app.gui.main_window" "build\archive_contents.txt" >nul
+if errorlevel 1 (
+    echo FAILED: app.gui.main_window is absent from the generated EXE archive.
+    echo Archive listing: %CD%\build\archive_contents.txt
+    if not defined CI pause
+    exit /b 1
+)
+echo Verified: app.gui.main_window is present in the generated EXE archive.
 
 REM External runtime resources are deliberately copied beside the EXE.
 if not exist "dist\config" mkdir "dist\config"
