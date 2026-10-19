@@ -38,7 +38,7 @@ def analyze_file(path:Path,target_path:Path,progress=None):
     emit("analysis",5)
     target=json.loads(target_path.read_text(encoding="utf-8"))
     emit("analysis",10)
-    sample,occupancy=band_energy_metrics(x,sr,lambda p:emit("analysis",10+int(p*0.40)))
+    sample,occupancy,spectrum_context=band_energy_metrics(x,sr,lambda p:emit("analysis",10+int(p*0.40)),return_context=True)
     emit("analysis",50)
     target_db=np.asarray(target["target_db"],dtype=float)
     if len(target_db)!=len(BANDS):raise ValueError("Target must contain exactly 10 values.")
@@ -50,7 +50,7 @@ def analyze_file(path:Path,target_path:Path,progress=None):
     for i,(lo,hi,name) in enumerate(BANDS):
         rec=_eq_for_band(lo,hi,diff[i])
         if rec:eq.append(rec)
-    post_occupancy=band_energy_post_eq_occupancy_pct(x,sr,eq)
+    post_occupancy=band_energy_post_eq_occupancy_pct(x,sr,eq,spectrum_context=spectrum_context)
     for i,(lo,hi,name) in enumerate(BANDS):
         b=BandResult(name,lo,hi,round(float(occupancy[i]),2),round(float(post_occupancy[i]),2),round(float(sample[i]),2),round(float(target_db[i]),2),round(float(diff[i]),2),_status(diff[i],tol[i]),_priority(diff[i],weights[i]))
         bands.append(b)
