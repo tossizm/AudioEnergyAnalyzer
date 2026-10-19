@@ -1,6 +1,6 @@
 # AudioEnergyAnalyzer — Standalone Windows App
 
-AudioEnergyAnalyzer v38 baseline: a local Windows desktop application for analyzing audio samples against a 10-band reference JSON. This repository is for the **standalone Python application**; the separate `tossizm/AudioEnergyAnalyzerEQ` repository is for the JUCE VST3 plug-in and should not be mixed into this source tree.
+AudioEnergyAnalyzer v38 baseline: a local Windows desktop application for analyzing audio samples against a 10-band reference JSON. This repository is for the **standalone Python application**; the separate `tossizm/ClubAudioAnalyzerEQ` repository is for the JUCE VST3 plug-in and should not be mixed into this source tree.
 
 ## Current source layout
 
