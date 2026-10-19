@@ -1,0 +1,31 @@
+{
+  "version": "v36",
+  "changes": [
+    "processing elapsed time shown as mm:ss",
+    "graphic progress bar: transparent background, black border, red chunk, no percent text",
+    "WAV/AIFF input load reports progress using 16384-sample blocks",
+    "MainWindow resizable with initial 1100x550 and minimum 700x400",
+    "startup popup shown before MainWindow import/creation and closed after GUI show"
+  ],
+  "unchanged_screens": {
+    "01_初期画面.png": {
+      "byte_identical": true,
+      "sha256": "065573db5d9719da8eb4ad11391e778ba66738b4d1d99e4908dd0bf5b43744b3"
+    },
+    "02_比率リファレンス設定.png": {
+      "byte_identical": true,
+      "sha256": "33bed1b27443b78210278ee01d7c0c2704a7ca7372fdb241ca1e7acf581c82eb"
+    },
+    "03_分析結果.png": {
+      "byte_identical": true,
+      "sha256": "f87c8c821c1c83db3cbd0dae7bf6eddae3fb33ae3652a31c4526d4b2f1561b92"
+    },
+    "04_目標比率EQ調整結果.png": {
+      "byte_identical": true,
+      "sha256": "285c4f38c937ca8abeaca6f4743fa30d72e1a8a6d442fedeaf53a02fa06b5c25"
+    }
+  },
+  "native_windows_gui_executed": false,
+  "native_windows_gui_note": "PySide6 is not installed in the Linux verification environment; native Windows GUI execution was not claimed.",
+  "tests": "56 passed; compileall passed"
+}

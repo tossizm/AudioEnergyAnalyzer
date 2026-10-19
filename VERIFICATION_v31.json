@@ -1,0 +1,23 @@
+{
+  "version": "v31",
+  "verification_status": "PASS_WITH_WINDOWS_RUNTIME_LIMITATION",
+  "functional_changes": [
+    "Frozen EXE resource lookup no longer uses _MEIPASS; config is resolved beside the EXE, with parent-level fallback for ClubAudioAnalyzer\\dist\\ClubAudioAnalyzer.exe + ClubAudioAnalyzer\\config.",
+    "PyInstaller build no longer embeds config into the one-file executable.",
+    "build_windows.bat copies config and ffmpeg beside the EXE under dist and removes unused _MEI folders after build.",
+    "cleanup_after_build.bat removes TEMP _MEI folders and all project folders except dist, config, ffmpeg; dist keeps config, ffmpeg and root files such as the EXE.",
+    "Analysis result now contains Pre % and Post % columns; Post % is computed by applying every proposed Bell EQ as a digital biquad frequency response to the measured FFT spectrum, then recomputing active-band energy occupancy.",
+    "Post % is normalized across the same 10 active bands as Pre %.",
+    "Existing analysis, reference generation, band customization, band save/apply/default, JSON drag-and-drop, MP3/WAV/AIFF analysis and navigation behavior remain covered by tests."
+  ],
+  "gui_verification": [
+    "Initial screen: reference-data controls retained; no return-home button; 40px internal padding; 110% font scale relative to v29 baseline.",
+    "Band customization: decision button right-aligned with 40px right margin; save/apply/default controls remain right-center and 40px above their previous positions; input boxes black fill, white border, yellow text.",
+    "Result screen: Band / Pre % / Post % / EQ / Diff / Sample / Target columns; Status and Priority absent."
+  ],
+  "automated_tests": {
+    "pytest": "31 passed",
+    "compileall": "passed with warnings-as-errors"
+  },
+  "native_windows_limit": "PySide6 and PyInstaller are not installed in this Linux verification environment, so native Windows EXE launch/build could not be executed here. Source/static checks, analysis-function tests, GUI geometry assertions, JSON/runtime-resource checks, and compilation were executed."
+}

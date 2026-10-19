@@ -1,0 +1,13 @@
+{
+  "verification": "static source + geometry verification",
+  "requirements_checked": [
+    "順番①～⑩を非表示",
+    "xx Hz ～ xx Hz エリアを中央寄せ",
+    "Hzと～の間隔を全角2文字",
+    "1000Hz左隣の不要な順番表示を構造的に削除",
+    "入力ボックス幅126px",
+    "決定ボタンは設定可能時のみ表示"
+  ],
+  "tests": "10 passed",
+  "native_gui": "PySide6 is unavailable in this execution environment; Windows native launch could not be executed here."
+}

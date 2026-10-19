@@ -1,0 +1,38 @@
+{
+  "version": "v35",
+  "base_version": "v34",
+  "verification_status": "PASS_WITH_WINDOWS_GUI_RUNTIME_LIMITATION",
+  "functional_changes": [
+    "Added a separate 10-band target-ratio reference setting page; the target is persisted in QSettings and does not add JSON files to config.",
+    "Added a separate ratio-EQ optimizer; the existing target_db/tolerance_db/priority_weight analysis and judgment path remains intact.",
+    "Initial dB correction is 10*log10(Target/Pre). Closed-loop correction uses the actual STFT/post-occupancy response and a numerical Jacobian with damped least-squares updates.",
+    "Post % is recalculated from the 0.01 dB-rounded EQ values that are displayed/saved, so the reported result is self-consistent.",
+    "Added result dialog showing Pre %, Target %, Post %, residual Diff % and the final 10-band Bell EQ gains."
+  ],
+  "changed_source_files_vs_v34": [
+    "app/analysis/ratio_targeting.py (new)",
+    "app/gui/main_window.py (ratio-reference UI and ratio-EQ UI/worker/export)",
+    "tests/test_v35_ratio_targeting.py (new)"
+  ],
+  "config_check": {
+    "json_files_in_config": [
+      "Reference_Average_Default.json"
+    ],
+    "count": 1
+  },
+  "automated_tests": {
+    "pytest": "51 passed",
+    "compileall": "passed"
+  },
+  "visual_verification": {
+    "native_qt_render": false,
+    "reason": "PySide6 is not installed in this Linux verification environment.",
+    "mockups_checked": [
+      "01_初期画面.png",
+      "02_比率リファレンス設定.png",
+      "03_分析結果.png",
+      "04_目標比率EQ調整結果.png"
+    ],
+    "reference_comparison": "v34 approved screens were used as the baseline; existing initial/result layout was preserved except for the new requested controls."
+  }
+}
