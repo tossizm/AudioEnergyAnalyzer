@@ -28,7 +28,10 @@ def test_reference_config_matches_target_json_shape(tmp_path):
         "notes": "test"
     }), encoding="utf-8")
 
-    data = generate_reference_config(audio, source)
+    stages = []
+    data = generate_reference_config(audio, source, lambda stage, pct: stages.append(stage))
+    assert "load" in stages
+    assert "decode" not in stages
 
     assert list(data) == [
         "version", "target_db", "tolerance_db", "priority_weight",
