@@ -127,25 +127,25 @@ def load_audio(path: Path, progress=None):
     return x,sr
 
 
-def _band_power_values(x, sr, progress=None):
-    """Return measured linear spectral energy for each active band.
-
-    The values are derived directly from the sample spectrum and are not
-    compared with, normalized to, or influenced by any reference target.
-    """
+def _stft_power_context(x, sr):
+    """Compute the shared STFT/PSD once for all band-level measurements."""
     mono=np.mean(x,axis=1)
     nperseg=min(65536,len(mono))
     if nperseg<1024: nperseg=len(mono)
     noverlap=int(nperseg*0.75) if nperseg>1 else 0
     f,_,z=stft(mono,fs=sr,window="hann",nperseg=nperseg,noverlap=noverlap,boundary=None,padded=False)
-    psd=np.mean(np.abs(z)**2,axis=1)
+    return f, np.mean(np.abs(z)**2,axis=1)
+
+
+def _band_power_values(x, sr, progress=None, spectrum_context=None):
+    """Return measured linear spectral energy for each active band."""
+    f,psd = spectrum_context if spectrum_context is not None else _stft_power_context(x,sr)
     powers=[]
     for i,(lo,hi,name) in enumerate(BANDS):
         mask=(f>=lo)&(f<hi)
         powers.append(float(np.sum(psd[mask])))
         if progress: progress(int((i+1)/len(BANDS)*100))
     return np.asarray(powers,dtype=float)
-
 
 
 def _dbfs_from_amplitude(amplitude: float) -> float:
@@ -196,13 +196,16 @@ def global_integrated_lufs(x, sr):
         arr=padded
     return float(meter.integrated_loudness(arr))
 
-def band_energy_metrics(x,sr,progress=None):
-    """Compute normalized band levels and measured energy occupancy from one STFT."""
-    powers=_band_power_values(x,sr,progress)
+def band_energy_metrics(x,sr,progress=None,return_context=False):
+    """Compute normalized band levels and measured occupancy using one reusable STFT."""
+    context=_stft_power_context(x,sr)
+    powers=_band_power_values(x,sr,progress,spectrum_context=context)
     values=10*np.log10(powers+1e-20)
     values-=np.mean(values)
     total=float(np.sum(powers))
     occupancy=(powers/total*100.0) if total>0.0 else np.zeros(len(BANDS),dtype=float)
+    if return_context:
+        return values,occupancy,context
     return values,occupancy
 
 
@@ -226,14 +229,9 @@ def _peaking_biquad_coeffs(sample_rate, frequency, gain_db, q):
             np.array([1.0, a1 / a0, a2 / a0], dtype=float))
 
 
-def _post_eq_band_powers(x, sr, eq_recommendations, progress=None):
-    """Apply the proposed EQ as digital biquad frequency responses to the measured FFT spectrum."""
-    mono=np.mean(x,axis=1)
-    nperseg=min(65536,len(mono))
-    if nperseg<1024: nperseg=len(mono)
-    noverlap=int(nperseg*0.75) if nperseg>1 else 0
-    f,_,z=stft(mono,fs=sr,window="hann",nperseg=nperseg,noverlap=noverlap,boundary=None,padded=False)
-    psd=np.mean(np.abs(z)**2,axis=1)
+def _post_eq_band_powers(x, sr, eq_recommendations, progress=None, spectrum_context=None):
+    """Apply proposed EQ to a shared measured FFT spectrum."""
+    f,psd = spectrum_context if spectrum_context is not None else _stft_power_context(x,sr)
     response=np.ones_like(f,dtype=float)
     valid=[]
     for rec in eq_recommendations or []:
@@ -253,9 +251,9 @@ def _post_eq_band_powers(x, sr, eq_recommendations, progress=None):
     return np.asarray(powers,dtype=float)
 
 
-def band_energy_post_eq_occupancy_pct(x,sr,eq_recommendations):
-    """Return Post % after applying every proposed Bell EQ to the FFT spectrum."""
-    powers=_post_eq_band_powers(x,sr,eq_recommendations)
+def band_energy_post_eq_occupancy_pct(x,sr,eq_recommendations,spectrum_context=None):
+    """Return Post % after applying every proposed Bell EQ to the shared FFT spectrum."""
+    powers=_post_eq_band_powers(x,sr,eq_recommendations,spectrum_context=spectrum_context)
     total=float(np.sum(powers))
     if total<=0.0:
         return np.zeros(len(BANDS),dtype=float)
