@@ -985,7 +985,7 @@ class MainWindow(QMainWindow):
         self.current_result=r; self.save_button.setEnabled(True)
         m=int(r.duration//60); s=int(round(r.duration-m*60))
         if s==60:m+=1;s=0
-        extra=f"   |   作成日時：{getattr(r,"audio_created_at","-")}"
+        extra=f"   |   作成日時：{getattr(r, 'audio_created_at', '-')}"
         if Path(r.filename).suffix.lower()==".mp3":
             br=getattr(r,"bitrate_kbps",None)
             if br: extra += f"   |   {br} kbps"
