@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime
 from pathlib import Path
 from app.models.result import AnalysisResult, BandResult, EQRecommendation
-from app.analysis.spectrum import load_audio, band_energy_db, band_energy_occupancy_pct, band_energy_post_eq_occupancy_pct, global_peak_dbfs, global_true_peak_dbtp, global_rms_dbfs, global_integrated_lufs, global_crest_factor_db, BANDS
+from app.analysis.spectrum import load_audio, band_energy_metrics, band_energy_post_eq_occupancy_pct, global_peak_dbfs, global_true_peak_dbtp, global_rms_dbfs, global_integrated_lufs, global_crest_factor_db, BANDS
 from app.analysis.stereo import correlation, low_band_correlation, band_correlations
 
 def _status(diff,tol):
@@ -38,8 +38,7 @@ def analyze_file(path:Path,target_path:Path,progress=None):
     emit("analysis",5)
     target=json.loads(target_path.read_text(encoding="utf-8"))
     emit("analysis",10)
-    sample=band_energy_db(x,sr,lambda p:emit("analysis",10+int(p*0.40)))
-    occupancy=band_energy_occupancy_pct(x,sr)
+    sample,occupancy=band_energy_metrics(x,sr,lambda p:emit("analysis",10+int(p*0.40)))
     emit("analysis",50)
     target_db=np.asarray(target["target_db"],dtype=float)
     if len(target_db)!=len(BANDS):raise ValueError("Target must contain exactly 10 values.")
