@@ -40,3 +40,4 @@ class AnalysisResult:
     audio_created_at: str = ""
     config_filename: str = ""
     bitrate_kbps: int | None = None
+    analysis_elapsed_seconds: float = 0.0
