@@ -6,8 +6,8 @@ def resource_path(relative: str) -> Path:
     """Resolve external runtime resources beside the EXE, never from _MEIPASS.
 
     For a frozen PyInstaller build, the preferred location is EXE_DIR/<relative>.
-    A parent-level fallback supports the project layout ClubAudioAnalyzer/dist/*.exe
-    with ClubAudioAnalyzer/config and ClubAudioAnalyzer/ffmpeg.
+    A parent-level fallback supports a project layout with dist/*.exe
+    alongside config and ffmpeg folders.
     """
     if getattr(sys, "frozen", False):
         exe_dir = Path(sys.executable).resolve().parent
@@ -23,7 +23,7 @@ def resource_path(relative: str) -> Path:
 
 def _show_startup_popup(app):
     popup=QDialog()
-    popup.setWindowTitle("ClubAudioAnalyzer")
+    popup.setWindowTitle("AudioEnergyAnalyzer")
     popup.setModal(False)
     popup.setFixedSize(360,120)
     layout=QVBoxLayout(popup)
