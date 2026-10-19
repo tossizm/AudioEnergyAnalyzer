@@ -739,7 +739,7 @@ class MainWindow(QMainWindow):
             self.metrics_row.addWidget(lab,1)
         rl.addLayout(self.metrics_row)
         self.ratio_status=QLabel(""); self.ratio_status.setAlignment(Qt.AlignCenter); self.ratio_status.setVisible(False); rl.addWidget(self.ratio_status)
-        self.table=QTableWidget(0,8); self.table.setHorizontalHeaderLabels(["Band","Pre %","Correlation","Post %","Diff","Sample","Target","EQ"])
+        self.table=QTableWidget(0,9); self.table.setHorizontalHeaderLabels(["Band","Sample %","Target %","Correlation","Post %","Diff","Sample dB","Target dB","EQ"])
         # Match the lower table's text size to the base font used by the Peak–overall-correlation metric row.
         self.table.setFont(self.metric_labels["Peak"].font())
         h=self.table.horizontalHeader(); h.setFont(self.metric_labels["Peak"].font()); h.setSectionsMovable(False); h.setSectionResizeMode(QHeaderView.Interactive); h.setStretchLastSection(False)
@@ -1005,18 +1005,28 @@ class MainWindow(QMainWindow):
             eq=[e for e in r.eq if b.low<=e.frequency<=b.high]
             eq_text="" if not eq else f"{eq[0].filter_type} / {eq[0].frequency:.1f} Hz / {eq[0].gain_db:+.1f} dB / Q {eq[0].q:.2f}"
             corr = r.band_correlations[i] if getattr(r,"band_correlations",None) else 0.0
-            vals=[f"{int(b.low)} ~ {int(b.high)} Hz",f"{b.energy_occupancy_pct:.2f} %",f"{corr:+.3f}",f"{b.post_energy_occupancy_pct:.2f} %",f"{b.diff_db:+.2f} dB",f"{b.sample_db:+.2f} dB",f"{b.target_db:+.2f} dB",eq_text]
+            target_weights=np.asarray([10.0**(float(item.target_db)/10.0) for item in r.bands],dtype=float)
+            target_total=float(np.sum(target_weights))
+            target_pct=(target_weights/target_total*100.0) if target_total>0 else np.zeros(len(target_weights))
+            vals=[f"{int(b.low)} ~ {int(b.high)} Hz",f"{b.energy_occupancy_pct:.2f} %",f"{target_pct[i]:.2f} %",f"{corr:+.3f}",f"{b.post_energy_occupancy_pct:.2f} %",f"{b.diff_db:+.2f} dB",f"{b.sample_db:+.2f} dB",f"{b.target_db:+.2f} dB",eq_text]
             for j,v in enumerate(vals):
                 it=QTableWidgetItem(v)
-                it.setTextAlignment((Qt.AlignLeft if j in (0,7) else Qt.AlignRight) | Qt.AlignVCenter)
-                # Pre %, Correlation, Post %, and Diff remain emphasized; EQ uses normal weight.
-                if j in (1,2,3,4):
+                it.setTextAlignment((Qt.AlignLeft if j in (0,8) else Qt.AlignRight) | Qt.AlignVCenter)
+                if j in (1,2,3,5):
                     ft=it.font(); ft.setBold(True); it.setFont(ft)
-                if j in (1,2):
+                if j in (1,3):
                     it.setForeground(QColor("#FFD84D"))
-                if j==4:
+                elif j==2:
+                    it.setForeground(QColor("#FFFFFF"))
+                if j==5:
                     it.setForeground(QColor("#FFD84D" if b.diff_db>0 else "#FF4D4D" if b.diff_db<0 else "#FFFFFF"))
+                if j==6:
+                    ft=it.font(); ft.setBold(True); it.setFont(ft)
+                    it.setForeground(QColor("#FFD84D"))
                 self.table.setItem(i,j,it)
+        self.table.setColumnHidden(4,True)
+        self.table.setColumnHidden(5,True)
+        self.table.setColumnHidden(8,True)
         self.table.resizeColumnsToContents()
         for col in range(self.table.columnCount()): self.table.setColumnWidth(col,self.table.columnWidth(col)+18)
         self.table.resizeRowsToContents()
