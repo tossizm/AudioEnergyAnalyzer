@@ -87,14 +87,22 @@ class DropArea(QFrame):
     def _load_saved_config(self):
         settings=self._settings()
         # First launch always starts from the single bundled default reference.
+        cache=self._selected_cache()
         if settings.value("initial_reference_loaded", False, type=bool) is not True:
-            candidate=self._bundled_default()
+            source=self._bundled_default()
+            cache.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+            candidate=cache
             settings.setValue("initial_reference_loaded", True)
+            settings.setValue("selected_config_path", str(cache))
+            settings.setValue("selected_config_filename", source.name)
         else:
             saved=settings.value("selected_config_path", "")
-            candidate=Path(saved) if saved else self._bundled_default()
+            candidate=Path(saved) if saved else cache
             if not candidate.is_file():
-                candidate=self._bundled_default()
+                source=self._bundled_default()
+                cache.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+                candidate=cache
+            settings.setValue("selected_config_path", str(candidate))
         self.config_path=candidate
         self._update_applied()
 
@@ -394,9 +402,10 @@ class RatioReferencePage(QWidget):
     home_requested=Signal()
     applied=Signal(object)
 
-    def __init__(self, font):
+    def __init__(self, font, reference_path_provider=None):
         super().__init__()
         self.font=font
+        self.reference_path_provider=reference_path_provider
         self.setStyleSheet("QWidget{background:#000000;} QLabel{color:#FFFFFF;font-weight:bold;} QPushButton{font-weight:bold;border-radius:5px;}")
         self.title=QLabel("10バンド比率リファレンス設定", self)
         self.title.setAlignment(Qt.AlignCenter)
@@ -463,8 +472,13 @@ class RatioReferencePage(QWidget):
         self._validate()
 
     def _restore_default(self):
-        from app.analysis.spectrum import BANDS
-        self.load_values([100.0/len(BANDS)]*len(BANDS))
+        from app.analysis.ratio_targeting import default_ratio_from_target_db
+        try:
+            data=json.loads(Path(self.reference_path_provider()).read_text(encoding="utf-8"))
+            self.load_values(default_ratio_from_target_db(data["target_db"]).tolist())
+        except Exception:
+            from app.analysis.spectrum import BANDS
+            self.load_values([100.0/len(BANDS)]*len(BANDS))
 
     def _set_style(self,edit,invalid):
         if invalid:
@@ -701,7 +715,7 @@ class MainWindow(QMainWindow):
         self.band_page.home_requested.connect(self.return_home)
         self.band_page.applied.connect(self.band_settings_applied)
         self.stack.addWidget(self.band_page)
-        self.ratio_page=RatioReferencePage(startup_font)
+        self.ratio_page=RatioReferencePage(startup_font, self.drop.current_config_path)
         self.ratio_page.home_requested.connect(self.return_home)
         self.ratio_page.applied.connect(self.ratio_settings_applied)
         self.stack.addWidget(self.ratio_page)
@@ -781,24 +795,25 @@ class MainWindow(QMainWindow):
 
     def open_ratio_reference(self):
         from app.analysis.ratio_targeting import default_ratio_from_target_db
-        raw=QSettings("ClubAudioAnalyzer","ClubAudioAnalyzer").value("ratio_target_percent","")
-        vals=None
-        if raw:
-            try: vals=json.loads(raw)
-            except Exception: vals=None
-        if vals is None:
-            try:
-                data=json.loads(self.drop.current_config_path().read_text(encoding="utf-8"))
-                vals=default_ratio_from_target_db(data.get("target_db",[])).tolist()
-            except Exception:
-                vals=[10.0]*10
+        data=json.loads(self.drop.current_config_path().read_text(encoding="utf-8"))
+        vals=default_ratio_from_target_db(data.get("target_db",[])).tolist()
         self.ratio_page.refresh_band_labels()
         self.ratio_page.load_values(vals)
         self.stack.setCurrentWidget(self.ratio_page)
 
     def ratio_settings_applied(self,vals):
-        self.current_ratio_target=list(map(float,vals))
-        self.stack.setCurrentWidget(self.drop)
+        from app.analysis.ratio_targeting import target_db_from_ratio
+        config_path=self.drop.current_config_path()
+        try:
+            data=json.loads(config_path.read_text(encoding="utf-8"))
+            converted=target_db_from_ratio(vals, data.get("target_db",[]))
+            data["target_db"]=[round(float(v),2) for v in converted]
+            config_path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+            self.current_ratio_target=list(map(float,vals))
+            self.drop._update_applied()
+            self.stack.setCurrentWidget(self.drop)
+        except Exception as exc:
+            QMessageBox.critical(self,"比率リファレンス設定エラー",f"selected_config.json を更新できません：{exc}")
 
     def band_settings_applied(self):
         self.stack.setCurrentWidget(self.drop)
@@ -842,10 +857,6 @@ class MainWindow(QMainWindow):
 
     def _current_ratio_target(self):
         from app.analysis.ratio_targeting import default_ratio_from_target_db, validate_ratio_target
-        raw=QSettings("ClubAudioAnalyzer","ClubAudioAnalyzer").value("ratio_target_percent","")
-        if raw:
-            try: return validate_ratio_target(json.loads(raw)).tolist()
-            except Exception: pass
         data=json.loads(self.drop.current_config_path().read_text(encoding="utf-8"))
         vals=default_ratio_from_target_db(data.get("target_db",[]))
         return validate_ratio_target(vals).tolist()
