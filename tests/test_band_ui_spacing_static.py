@@ -20,8 +20,11 @@ def test_band_rows_are_centered_without_sequence_labels():
 def test_result_table_has_measured_energy_occupancy_column():
     src = Path(__file__).parents[1] / 'app' / 'gui' / 'main_window.py'
     text = src.read_text(encoding='utf-8')
-    assert 'QTableWidget(0,8)' in text
-    assert '["Band","Pre %","Correlation","Post %","Diff","Sample","Target","EQ"]' in text
+    assert 'QTableWidget(0,9)' in text
+    assert '["Band","Sample %","Target %","Correlation","Post %","Diff","Sample dB","Target dB","EQ"]' in text
+    assert 'self.table.setColumnHidden(4,True)' in text
+    assert 'self.table.setColumnHidden(5,True)' in text
+    assert 'self.table.setColumnHidden(8,True)' in text
     assert 'f"{b.energy_occupancy_pct:.2f} %"' in text
 
 
