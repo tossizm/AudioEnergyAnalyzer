@@ -27,4 +27,6 @@ def test_artifact_zip_has_numbered_name_and_expected_root_folder():
     assert 'AudioEnergyAnalyzer-${{ github.run_number }}.zip' in WORKFLOW
     assert 'name: AudioEnergyAnalyzer-${{ github.run_number }}' in WORKFLOW
     assert 'Join-Path $PWD "package/AudioEnergyAnalyzer"' in WORKFLOW
+    assert 'Compress-Archive -Path "package/AudioEnergyAnalyzer" -DestinationPath $zip' in WORKFLOW
     assert 'AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe' in WORKFLOW
+    assert 'path: AudioEnergyAnalyzer-${{ github.run_number }}.zip' in WORKFLOW
