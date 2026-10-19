@@ -2,6 +2,7 @@ from pathlib import Path
 from datetime import datetime
 import json
 import av
+import time
 
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem,
@@ -77,7 +78,10 @@ class DropArea(QFrame):
         return resource_path("config/Reference_Average_Default.json")
 
     def _selected_cache(self):
-        return self._appdata_dir()/"selected_config.json"
+        from app.main import resource_path
+        config_dir=resource_path("config")
+        config_dir.mkdir(parents=True,exist_ok=True)
+        return config_dir/"selected_config.json"
 
     def _load_saved_config(self):
         settings=self._settings()
@@ -581,6 +585,7 @@ class AnalysisWorker(QObject):
         try:
             from app.analysis.pipeline import analyze_file
             def cb(stage,pct): self.progress.emit(stage,pct)
+            started=time.perf_counter()
             r=analyze_file(self.path,self.target_path,cb)
             r.config_filename=self.config_filename
             if self.path.suffix.lower()==".mp3":
@@ -590,6 +595,7 @@ class AnalysisWorker(QObject):
                         r.bitrate_kbps=round(max(rates)/1000) if rates else None
                 except Exception:
                     r.bitrate_kbps=None
+            r.analysis_elapsed_seconds=max(0.0,time.perf_counter()-started)
             self.finished.emit(r)
         except Exception as e:self.failed.emit(str(e))
 
@@ -985,7 +991,9 @@ class MainWindow(QMainWindow):
             br=getattr(r,"bitrate_kbps",None)
             if br: extra += f"   |   {br} kbps"
         self.config_info.setText(f"リファレンスデータ：{getattr(r,'config_filename','-')}")
-        self.info.setText(f"{r.filename}   |   {m}m{s}s{extra}")
+        elapsed=max(0,int(round(getattr(r,"analysis_elapsed_seconds",0.0))))
+        elapsed_text=f"{elapsed//60:02d}:{elapsed%60:02d}"
+        self.info.setText(f"{r.filename}   |   {m}m{s}s   |   分析時間：{elapsed_text}{extra}")
         self.metric_labels["Peak"].setText(self._metric_html("Peak",r.peak_dbfs,"dBFS",2))
         self.metric_labels["RMS"].setText(self._metric_html("RMS",r.rms_dbfs,"dBFS",2))
         self.metric_labels["TruePeak"].setText(self._metric_html("TruePeak",r.true_peak_dbtp,"dBTP",2))
@@ -999,7 +1007,8 @@ class MainWindow(QMainWindow):
             corr = r.band_correlations[i] if getattr(r,"band_correlations",None) else 0.0
             vals=[f"{int(b.low)} ~ {int(b.high)} Hz",f"{b.energy_occupancy_pct:.2f} %",f"{corr:+.3f}",f"{b.post_energy_occupancy_pct:.2f} %",f"{b.diff_db:+.2f} dB",f"{b.sample_db:+.2f} dB",f"{b.target_db:+.2f} dB",eq_text]
             for j,v in enumerate(vals):
-                it=QTableWidgetItem(v); it.setTextAlignment(Qt.AlignCenter)
+                it=QTableWidgetItem(v)
+                it.setTextAlignment((Qt.AlignLeft if j in (0,7) else Qt.AlignRight) | Qt.AlignVCenter)
                 # Pre %, Correlation, Post %, and Diff remain emphasized; EQ uses normal weight.
                 if j in (1,2,3,4):
                     ft=it.font(); ft.setBold(True); it.setFont(ft)
@@ -1018,7 +1027,9 @@ class MainWindow(QMainWindow):
         path,_=QFileDialog.getSaveFileName(self,"分析結果データ生成",default,"Text Files (*.txt)")
         if not path:return False
         m=int(r.duration//60); s=int(round(r.duration%60))
-        lines=["CLUB AUDIO ANALYZER","="*72,f"リファレンスデータ：{getattr(r,'config_filename','-')}",f"File : {r.filename}",f"Duration : {m}m{s}s",f"Created : {getattr(r, 'audio_created_at', '-')}"]
+        elapsed=max(0,int(round(getattr(r,"analysis_elapsed_seconds",0.0))))
+        elapsed_text=f"{elapsed//60:02d}:{elapsed%60:02d}"
+        lines=["CLUB AUDIO ANALYZER","="*72,f"リファレンスデータ：{getattr(r,'config_filename','-')}",f"File : {r.filename}",f"Duration : {m}m{s}s",f"Analysis Time : {elapsed_text} (MM:SS)",f"Created : {getattr(r, 'audio_created_at', '-')}"]
         if Path(r.filename).suffix.lower()==".mp3":
             br=getattr(r,"bitrate_kbps",None)
             if br: lines.append(f"Bitrate : {br} kbps")
