@@ -104,13 +104,8 @@ class DropArea(QFrame):
         try:
             data=json.loads(self.config_path.read_text(encoding="utf-8"))
             name=str(data.get("name",self.config_path.stem))
-            bpm=data.get("bpm")
-            if bpm is not None:
-                name=name.replace(f" — {bpm} BPM club target","")
-                text=f"リファレンスデータ：\n{name}({bpm}bpm)"
-            else:
-                text=f"リファレンスデータ：\n{name}"
-            self.applied.setText(text)
+            name=name.replace(f" — {data.get('bpm')} BPM club target","")
+            self.applied.setText(f"リファレンスデータ：\n{name}")
         except Exception:
             self.applied.setText(f"リファレンスデータ：\n{self.config_path.name}")
 
