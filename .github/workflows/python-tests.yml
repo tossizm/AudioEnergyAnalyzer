@@ -70,10 +70,31 @@ jobs:
           if (!(Test-Path "package/AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe")) {
             throw "Expected package layout is missing AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe."
           }
+      - name: Create and verify numbered ZIP
+        shell: pwsh
+        run: |
+          $zip = "AudioEnergyAnalyzer-${{ github.run_number }}.zip"
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path "package/AudioEnergyAnalyzer" -DestinationPath $zip -CompressionLevel Optimal
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $zip).Path)
+          try {
+            $entries = @($archive.Entries | ForEach-Object { $_.FullName })
+            if ($entries -notcontains "AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe") {
+              throw "ZIP must contain AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe directly; found: $($entries -join ', ')"
+            }
+            if ($entries -match "^package/|^AudioEnergyAnalyzer/AudioEnergyAnalyzer/") {
+              throw "ZIP contains an unwanted nested directory: $($entries -join ', ')"
+            }
+            Write-Output "Verified ZIP entries:"
+            $entries | ForEach-Object { Write-Output $_ }
+          } finally {
+            $archive.Dispose()
+          }
       - name: Upload Windows build artifact
         uses: actions/upload-artifact@v4
         with:
           name: AudioEnergyAnalyzer-${{ github.run_number }}
-          path: package/**
+          path: AudioEnergyAnalyzer-${{ github.run_number }}.zip
           if-no-files-found: error
           retention-days: 7
