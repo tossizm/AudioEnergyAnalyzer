@@ -12,8 +12,10 @@ def test_ffmpeg_is_downloaded_when_missing_and_saved_to_runtime_folder():
     assert 'if executable.is_file() and executable.stat().st_size > 0:' in MAIN
 
 
-def test_artifact_upload_preserves_one_top_level_application_folder():
+def test_artifact_upload_is_a_zip_with_one_top_level_application_folder():
     assert 'name: AudioEnergyAnalyzer-${{ github.run_number }}' in WORKFLOW
-    assert 'path: package/**' in WORKFLOW
+    assert 'path: AudioEnergyAnalyzer-${{ github.run_number }}.zip' in WORKFLOW
     assert 'package/AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe' in WORKFLOW
-    assert 'Package ZIP with stable top-level folder' not in WORKFLOW
+    assert 'Compress-Archive -Path "package/AudioEnergyAnalyzer" -DestinationPath $zip' in WORKFLOW
+    assert 'Create and verify numbered ZIP' in WORKFLOW
+    assert 'AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe' in WORKFLOW
