@@ -19,7 +19,7 @@ def test_first_launch_uses_default_reference():
     assert 'initial_reference_loaded' in GUI
 
 def test_correlation_column_and_creation_time_are_saved():
-    assert '["Band","Pre %","Correlation","Post %","Diff","Sample","Target","EQ"]' in GUI
+    assert '["Band","Sample %","Target %","Correlation","Post %","Diff","Sample dB","Target dB","EQ"]' in GUI
     assert 'r.band_correlations' in GUI
     assert 'audio_created_at' in GUI
     assert 'Created :' in GUI
