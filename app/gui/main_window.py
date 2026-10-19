@@ -1023,7 +1023,7 @@ class MainWindow(QMainWindow):
         path,_=QFileDialog.getSaveFileName(self,"分析結果データ生成",default,"Text Files (*.txt)")
         if not path:return False
         m=int(r.duration//60); s=int(round(r.duration%60))
-        lines=["CLUB AUDIO ANALYZER","="*72,f"リファレンスデータ：{getattr(r,'config_filename','-')}",f"File : {r.filename}",f"Duration : {m}m{s}s",f"Created : {getattr(r,"audio_created_at","-")}"]
+        lines=["CLUB AUDIO ANALYZER","="*72,f"リファレンスデータ：{getattr(r,'config_filename','-')}",f"File : {r.filename}",f"Duration : {m}m{s}s",f"Created : {getattr(r, 'audio_created_at', '-')}"]
         if Path(r.filename).suffix.lower()==".mp3":
             br=getattr(r,"bitrate_kbps",None)
             if br: lines.append(f"Bitrate : {br} kbps")
