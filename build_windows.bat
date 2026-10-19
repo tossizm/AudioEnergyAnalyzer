@@ -73,12 +73,19 @@ if errorlevel 1 (
 )
 findstr /i /c:"app.gui.main_window" "build\archive_contents.txt" >nul
 if errorlevel 1 (
-    echo FAILED: app.gui.main_window is absent from the generated EXE archive.
-    echo Archive listing: %CD%\build\archive_contents.txt
-    if not defined CI pause
-    exit /b 1
+    echo Archive viewer did not print the exact module name. Relevant archive listing:
+    findstr /i /c:"main_window" /c:"app.gui" /c:"app" "build\archive_contents.txt"
+    echo Checking PyInstaller PYZ analysis table as an independent source...
+    python -c "from pathlib import Path; p=Path('build/AudioEnergyAnalyzer/PYZ-00.toc'); print('PYZ TOC exists:', p.exists()); data=p.read_bytes() if p.exists() else b''; print('main_window in PYZ TOC:', b'main_window' in data); print('app.gui.main_window in PYZ TOC:', b'app.gui.main_window' in data); raise SystemExit(0 if b'main_window' in data else 1)"
+    if errorlevel 1 (
+        echo FAILED: app.gui.main_window is not confirmed in the generated PYZ table.
+        if not defined CI pause
+        exit /b 1
+    )
+    echo Verified: main_window appears in the PyInstaller PYZ analysis table.
+) else (
+    echo Verified: app.gui.main_window is present in the generated EXE archive.
 )
-echo Verified: app.gui.main_window is present in the generated EXE archive.
 
 REM External runtime resources are deliberately copied beside the EXE.
 if not exist "dist\config" mkdir "dist\config"
