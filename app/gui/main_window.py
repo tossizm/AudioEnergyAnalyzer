@@ -63,6 +63,7 @@ class DropArea(QFrame):
         self.band_button.setGeometry(w-pad-bw,by,bw,50)
 
     def _settings(self):
+        # Keep the legacy namespace so existing ClubAudioAnalyzer preferences remain available.
         return QSettings("ClubAudioAnalyzer","ClubAudioAnalyzer")
 
     def _appdata_dir(self):
