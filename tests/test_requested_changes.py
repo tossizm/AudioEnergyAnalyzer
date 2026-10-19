@@ -20,7 +20,7 @@ def test_analysis_elapsed_time_is_shown_and_exported():
 
 
 def test_result_table_alignment_matches_column_roles():
-    assert "Qt.AlignLeft if j in (0,7) else Qt.AlignRight" in GUI
+    assert "Qt.AlignLeft if j in (0,8) else Qt.AlignRight" in GUI
 
 
 def test_artifact_zip_has_numbered_name_and_expected_root_folder():
