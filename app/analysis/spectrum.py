@@ -196,11 +196,18 @@ def global_integrated_lufs(x, sr):
         arr=padded
     return float(meter.integrated_loudness(arr))
 
-def band_energy_db(x,sr,progress=None):
+def band_energy_metrics(x,sr,progress=None):
+    """Compute normalized band levels and measured energy occupancy from one STFT."""
     powers=_band_power_values(x,sr,progress)
     values=10*np.log10(powers+1e-20)
     values-=np.mean(values)
-    return values
+    total=float(np.sum(powers))
+    occupancy=(powers/total*100.0) if total>0.0 else np.zeros(len(BANDS),dtype=float)
+    return values,occupancy
+
+
+def band_energy_db(x,sr,progress=None):
+    return band_energy_metrics(x,sr,progress)[0]
 
 
 def _peaking_biquad_coeffs(sample_rate, frequency, gain_db, q):
