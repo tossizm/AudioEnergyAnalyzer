@@ -58,13 +58,25 @@ jobs:
           }
           Stop-Process -Id $process.Id -Force
 
+      - name: Package ZIP with stable top-level folder
+        shell: pwsh
+        run: |
+          $stage = Join-Path $PWD "package/AudioEnergyAnalyzer"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item "dist/AudioEnergyAnalyzer.exe" $stage
+          if (Test-Path "dist/config") { Copy-Item "dist/config" $stage -Recurse }
+          if (Test-Path "dist/ffmpeg") { Copy-Item "dist/ffmpeg" $stage -Recurse }
+          $zip = "AudioEnergyAnalyzer-${{ github.run_number }}.zip"
+          Compress-Archive -Path $stage -DestinationPath $zip -Force
+          if (!(Test-Path $zip)) { throw "ZIP package was not generated: $zip" }
+          $entries = tar -tf $zip
+          if (!($entries | Where-Object { $_ -like "AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe" })) {
+            throw "ZIP does not contain AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe at the expected path."
+          }
       - name: Upload Windows build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AudioEnergyAnalyzer-Windows
-          path: |
-            dist/AudioEnergyAnalyzer.exe
-            dist/config/**
-            dist/ffmpeg/**
+          name: AudioEnergyAnalyzer-${{ github.run_number }}
+          path: AudioEnergyAnalyzer-${{ github.run_number }}.zip
           if-no-files-found: error
           retention-days: 7
