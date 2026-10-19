@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 from PySide6.QtWidgets import QApplication, QDialog, QLabel, QVBoxLayout
 from PySide6.QtCore import Qt
+from app.gui.main_window import MainWindow
 def resource_path(relative: str) -> Path:
     """Resolve external runtime resources beside the EXE, never from _MEIPASS.
 
@@ -39,7 +40,6 @@ def main():
     app = QApplication(sys.argv)
     startup_popup = _show_startup_popup(app)
     app.processEvents()
-    from app.gui.main_window import MainWindow
     win = MainWindow()
     win.show()
     app.processEvents()
