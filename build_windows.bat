@@ -36,6 +36,8 @@ pyinstaller --noconfirm --clean --onefile --windowed ^
   --name AudioEnergyAnalyzer ^
   --paths "." ^
   --collect-all av ^
+  --collect-submodules app ^
+  --hidden-import app.gui.main_window ^
   app\main.py
 
 if errorlevel 1 (
