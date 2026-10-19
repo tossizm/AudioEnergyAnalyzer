@@ -30,7 +30,7 @@ def test_cleanup_preserves_runtime_dirs():
 
 
 def test_result_has_pre_and_post_columns():
-    assert '["Band","Pre %","Correlation","Post %","Diff","Sample","Target","EQ"]' in GUI
+    assert '["Band","Sample %","Target %","Correlation","Post %","Diff","Sample dB","Target dB","EQ"]' in GUI
     assert 'b.post_energy_occupancy_pct' in GUI
 
 
