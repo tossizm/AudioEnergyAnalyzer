@@ -46,6 +46,18 @@ jobs:
           }
           Get-Item $exe | Select-Object FullName, Length
 
+      - name: Smoke-test packaged EXE startup
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path "dist/AudioEnergyAnalyzer.exe").Path
+          $process = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 15
+          $process.Refresh()
+          if ($process.HasExited) {
+            throw "AudioEnergyAnalyzer.exe exited during startup (exit code $($process.ExitCode))."
+          }
+          Stop-Process -Id $process.Id -Force
+
       - name: Upload Windows build artifact
         uses: actions/upload-artifact@v4
         with:
