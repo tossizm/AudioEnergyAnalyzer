@@ -35,8 +35,11 @@ def test_band_layout_has_40px_top_gap_and_bottom_margin_and_red_decision_button(
 
 
 def test_result_hides_status_priority_and_renames_energy_column():
-    assert 'QTableWidget(0,8)' in GUI
-    assert '["Band","Pre %","Correlation","Post %","Diff","Sample","Target","EQ"]' in GUI
+    assert 'QTableWidget(0,9)' in GUI
+    assert '["Band","Sample %","Target %","Correlation","Post %","Diff","Sample dB","Target dB","EQ"]' in GUI
+    assert 'self.table.setColumnHidden(4,True)' in GUI
+    assert 'self.table.setColumnHidden(5,True)' in GUI
+    assert 'self.table.setColumnHidden(8,True)' in GUI
     assert 'b.status' not in GUI[GUI.index('def show_result'):GUI.index('def save_result')]
     assert 'priority_display' not in GUI[GUI.index('def show_result'):GUI.index('def save_result')]
 
