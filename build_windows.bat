@@ -33,7 +33,7 @@ if errorlevel 1 (
 if exist "dist" rmdir /s /q "dist"
 if exist "build" rmdir /s /q "build"
 pyinstaller --noconfirm --clean --onefile --windowed ^
-  --name ClubAudioAnalyzer ^
+  --name AudioEnergyAnalyzer ^
   --paths "." ^
   --collect-all av ^
   app\main.py
@@ -44,8 +44,8 @@ if errorlevel 1 (
     exit /b 1
 )
 
-if not exist "dist\ClubAudioAnalyzer.exe" (
-    echo BUILD FAILED: dist\ClubAudioAnalyzer.exe was not created.
+if not exist "dist\AudioEnergyAnalyzer.exe" (
+    echo BUILD FAILED: dist\AudioEnergyAnalyzer.exe was not created.
     if not defined CI pause
     exit /b 1
 )
@@ -73,11 +73,10 @@ if not exist "dist\config\Reference_Average_Default.json" (
 )
 
 echo BUILD COMPLETE:
-echo %CD%\dist\ClubAudioAnalyzer.exe
+echo %CD%\dist\AudioEnergyAnalyzer.exe
 echo External config: %CD%\dist\config
 if exist "dist\ffmpeg" echo External ffmpeg: %CD%\dist\ffmpeg
 echo.
-
 echo Cleaning unused PyInstaller _MEI temporary folders...
 for /d %%D in ("%TEMP%\_MEI*") do (
     rmdir /s /q "%%~fD" >nul 2>&1
