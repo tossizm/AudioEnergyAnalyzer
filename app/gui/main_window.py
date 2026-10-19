@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 import av
 import time
+import numpy as np
 
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem,
