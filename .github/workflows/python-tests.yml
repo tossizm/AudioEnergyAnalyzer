@@ -1,0 +1,58 @@
+name: AudioEnergyAnalyzer Windows Build
+
+on:
+  push:
+    branches: [ main, "work/**", "feature/**", "fix/**" ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      QT_QPA_PLATFORM: offscreen
+      CI: "true"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      - name: Run tests and build Windows EXE
+        shell: cmd
+        run: call build_windows.bat
+
+      - name: Verify packaged output
+        shell: pwsh
+        run: |
+          $exe = "dist/AudioEnergyAnalyzer.exe"
+          if (!(Test-Path $exe)) {
+            throw "Expected EXE was not generated: $exe"
+          }
+          if ((Get-Item $exe).Length -le 0) {
+            throw "Generated EXE is empty."
+          }
+          if (!(Test-Path "dist/config/Reference_Average_Default.json")) {
+            throw "Default reference JSON is missing from dist/config."
+          }
+          Get-Item $exe | Select-Object FullName, Length
+
+      - name: Upload Windows build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AudioEnergyAnalyzer-Windows
+          path: |
+            dist/AudioEnergyAnalyzer.exe
+            dist/config/**
+            dist/ffmpeg/**
+          if-no-files-found: error
+          retention-days: 7
