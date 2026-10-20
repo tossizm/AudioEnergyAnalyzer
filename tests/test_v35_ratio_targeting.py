@@ -85,3 +85,25 @@ def test_ratio_eq_gui_entry_points_and_export_section():
 
 def test_ratio_reference_gui_allows_zero_only_for_band10():
     assert "i < 9 and v == 0.0" in GUI
+
+
+def test_ratio_percent_to_db_round_trip_preserves_selected_reference_baseline():
+    from app.analysis.ratio_targeting import default_ratio_from_target_db, target_db_from_ratio
+    reference = np.array([5.0, 7.5, 3.75, 3.0, 2.5, 2.0, 1.25, -0.25, -1.0, -23.75])
+    pct = default_ratio_from_target_db(reference)
+    recovered = target_db_from_ratio(pct, reference)
+    assert np.allclose(recovered, reference, atol=1e-10)
+    changed = pct.copy()
+    changed[0] *= 1.2
+    changed[1] *= 0.8
+    changed = changed / changed.sum() * 100.0
+    converted = target_db_from_ratio(changed, reference)
+    assert np.isclose(np.mean(converted), np.mean(reference), atol=1e-10)
+    assert np.allclose(default_ratio_from_target_db(converted), changed, atol=1e-8)
+
+
+def test_ratio_page_uses_active_reference_and_saves_target_db():
+    assert 'default_ratio_from_target_db(data.get("target_db",[]))' in GUI
+    assert 'target_db_from_ratio(vals, data.get("target_db",[]))' in GUI
+    assert 'config_path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")' in GUI
+    assert 'def _current_ratio_target(self):' in GUI
