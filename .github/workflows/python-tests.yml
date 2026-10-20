@@ -70,31 +70,29 @@ jobs:
           if (!(Test-Path "package/AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe")) {
             throw "Expected package layout is missing AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe."
           }
-      - name: Create and verify numbered ZIP
+      - name: Verify single-root package folder without nested ZIP
         shell: pwsh
         run: |
-          $zip = "AudioEnergyAnalyzer-${{ github.run_number }}.zip"
-          if (Test-Path $zip) { Remove-Item $zip -Force }
-          Compress-Archive -Path "package/AudioEnergyAnalyzer" -DestinationPath $zip -CompressionLevel Optimal
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
-          $archive = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $zip).Path)
-          try {
-            $entries = @($archive.Entries | ForEach-Object { $_.FullName })
-            if ($entries -notcontains "AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe") {
-              throw "ZIP must contain AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe directly; found: $($entries -join ', ')"
-            }
-            if ($entries -match "^package/|^AudioEnergyAnalyzer/AudioEnergyAnalyzer/") {
-              throw "ZIP contains an unwanted nested directory: $($entries -join ', ')"
-            }
-            Write-Output "Verified ZIP entries:"
-            $entries | ForEach-Object { Write-Output $_ }
-          } finally {
-            $archive.Dispose()
+          $exe = "package/AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe"
+          if (!(Test-Path $exe)) {
+            throw "Expected package EXE is missing: $exe"
           }
-      - name: Upload Windows build artifact
+          if (Get-ChildItem "package" -Recurse -File -Filter "*.zip") {
+            throw "Nested ZIP files are forbidden in the package."
+          }
+          $entries = Get-ChildItem "package" -Recurse -File | ForEach-Object { $_.FullName.Substring((Resolve-Path "package").Path.Length + 1) }
+          if ($entries -notcontains "AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe") {
+            throw "Expected single-root layout was not found: $($entries -join ', ')"
+          }
+          if ($entries -match "^AudioEnergyAnalyzer/AudioEnergyAnalyzer/") {
+            throw "Package contains an unwanted nested application folder: $($entries -join ', ')"
+          }
+          Write-Output "Verified single-root package folder:"
+          $entries | ForEach-Object { Write-Output $_ }
+      - name: Upload Windows build artifact without wrapping a ZIP inside another ZIP
         uses: actions/upload-artifact@v4
         with:
           name: AudioEnergyAnalyzer-${{ github.run_number }}
-          path: AudioEnergyAnalyzer-${{ github.run_number }}.zip
+          path: package/
           if-no-files-found: error
           retention-days: 7
