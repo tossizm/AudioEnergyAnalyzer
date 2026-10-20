@@ -80,7 +80,7 @@ jobs:
           if (Get-ChildItem "package" -Recurse -File -Filter "*.zip") {
             throw "Nested ZIP files are forbidden in the package."
           }
-          $entries = Get-ChildItem "package" -Recurse -File | ForEach-Object { $_.FullName.Substring((Resolve-Path "package").Path.Length + 1) }
+          $entries = Get-ChildItem "package" -Recurse -File | ForEach-Object { ($_.FullName.Substring((Resolve-Path "package").Path.Length + 1)).Replace('\', '/') }
           if ($entries -notcontains "AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe") {
             throw "Expected single-root layout was not found: $($entries -join ', ')"
           }
