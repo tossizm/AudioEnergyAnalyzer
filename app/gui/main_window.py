@@ -480,10 +480,13 @@ class RatioReferencePage(QWidget):
         from app.analysis.ratio_targeting import default_ratio_from_target_db
         try:
             data=json.loads(Path(self.reference_path_provider()).read_text(encoding="utf-8"))
-            self.load_values(default_ratio_from_target_db(data["target_db"]).tolist())
+            precise=default_ratio_from_target_db(data["target_db"]).tolist()
         except Exception:
             from app.analysis.spectrum import BANDS
-            self.load_values([100.0/len(BANDS)]*len(BANDS))
+            precise=[100.0/len(BANDS)]*len(BANDS)
+        self.load_values(precise)
+        self.reference_precise_values=list(precise)
+        self.reference_original_values=self.values()
 
     def _set_style(self,edit,invalid):
         if invalid:
@@ -804,17 +807,38 @@ class MainWindow(QMainWindow):
         vals=default_ratio_from_target_db(data.get("target_db",[])).tolist()
         self.ratio_page.refresh_band_labels()
         self.ratio_page.load_values(vals)
+        self.ratio_page.reference_precise_values=list(vals)
+        self.ratio_page.reference_original_values=self.ratio_page.values()
         self.stack.setCurrentWidget(self.ratio_page)
 
     def ratio_settings_applied(self,vals):
-        from app.analysis.ratio_targeting import target_db_from_ratio
+        from app.analysis.ratio_targeting import target_db_from_ratio, validate_ratio_target
         config_path=self.drop.current_config_path()
         try:
             data=json.loads(config_path.read_text(encoding="utf-8"))
-            converted=target_db_from_ratio(vals, data.get("target_db",[]))
+            original=getattr(self.ratio_page,"reference_original_values",None)
+            precise=getattr(self.ratio_page,"reference_precise_values",None)
+            if original is not None and precise is not None and all(abs(float(vals[i])-float(original[i]))<1e-9 for i in range(10)):
+                # Confirming the unchanged rounded display must not turn a tiny
+                # nonzero reference band (shown as 0.00%) into an actual zero.
+                self.current_ratio_target=list(map(float,default_ratio_from_target_db(data.get("target_db",[]))))
+                self.stack.setCurrentWidget(self.drop)
+                return
+            effective=[]
+            for i,value in enumerate(vals):
+                if original is not None and precise is not None and abs(float(value)-float(original[i]))<1e-9:
+                    effective.append(float(precise[i]))
+                else:
+                    effective.append(float(value))
+            total=sum(effective)
+            if total<=0:
+                raise ValueError("比率合計が0です。")
+            effective=[v*100.0/total for v in effective]
+            effective=validate_ratio_target(effective).tolist()
+            converted=target_db_from_ratio(effective, data.get("target_db",[]))
             data["target_db"]=[round(float(v),2) for v in converted]
             config_path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-            self.current_ratio_target=list(map(float,vals))
+            self.current_ratio_target=effective
             self.drop._update_applied()
             self.stack.setCurrentWidget(self.drop)
         except Exception as exc:
