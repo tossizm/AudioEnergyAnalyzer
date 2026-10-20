@@ -135,9 +135,11 @@ def load_audio(path: Path, progress=None):
 def _stft_power_context(x, sr):
     """Compute the shared STFT/PSD once for all band-level measurements."""
     mono=np.mean(x,axis=1)
-    nperseg=min(65536,len(mono))
+    nperseg=min(32768,len(mono))
     if nperseg<1024: nperseg=len(mono)
-    noverlap=int(nperseg*0.75) if nperseg>1 else 0
+    # 50% overlap keeps enough frequency resolution for the 10 bands while
+    # avoiding the large 75%-overlap STFT memory/time penalty.
+    noverlap=int(nperseg*0.50) if nperseg>1 else 0
     f,_,z=stft(mono,fs=sr,window="hann",nperseg=nperseg,noverlap=noverlap,boundary=None,padded=False)
     return f, np.mean(np.abs(z)**2,axis=1)
 
