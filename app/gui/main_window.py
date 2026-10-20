@@ -812,7 +812,7 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentWidget(self.ratio_page)
 
     def ratio_settings_applied(self,vals):
-        from app.analysis.ratio_targeting import target_db_from_ratio, validate_ratio_target
+        from app.analysis.ratio_targeting import default_ratio_from_target_db, target_db_from_ratio, validate_ratio_target
         config_path=self.drop.current_config_path()
         try:
             data=json.loads(config_path.read_text(encoding="utf-8"))
