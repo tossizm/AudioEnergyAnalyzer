@@ -30,3 +30,11 @@ def test_artifact_zip_has_numbered_name_and_expected_root_folder():
     assert 'Compress-Archive' not in WORKFLOW
     assert 'AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe' in WORKFLOW
     assert 'path: package/' in WORKFLOW
+
+
+def test_default_reference_values_match_uploaded_reference():
+    import json
+    config = json.loads((ROOT / "config" / "Reference_Average_Default.json").read_text(encoding="utf-8"))
+    assert config["target_db"] == [5.0, 7.5, 3.75, 3.0, 2.5, 2.0, 1.25, -0.25, -1.0, -23.75]
+    assert config["bpm"] == 155
+    assert config["genre"] == "General Club"
