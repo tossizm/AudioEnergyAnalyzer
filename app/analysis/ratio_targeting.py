@@ -64,10 +64,11 @@ def target_db_from_ratio(target_pct, reference_target_db):
 
 def _spectrum_context(x, sr):
     mono = np.mean(np.asarray(x, dtype=float), axis=1)
-    nperseg = min(65536, len(mono))
+    nperseg = min(32768, len(mono))
     if nperseg < 1024:
         nperseg = len(mono)
-    noverlap = int(nperseg * 0.75) if nperseg > 1 else 0
+    # 50% overlap preserves useful resolution while cutting STFT work.
+    noverlap = int(nperseg * 0.50) if nperseg > 1 else 0
     f, _, z = stft(
         mono,
         fs=sr,
