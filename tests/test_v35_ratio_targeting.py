@@ -104,6 +104,8 @@ def test_ratio_percent_to_db_round_trip_preserves_selected_reference_baseline():
 
 def test_ratio_page_uses_active_reference_and_saves_target_db():
     assert 'default_ratio_from_target_db(data.get("target_db",[]))' in GUI
-    assert 'target_db_from_ratio(vals, data.get("target_db",[]))' in GUI
+    assert 'target_db_from_ratio(effective, data.get("target_db",[]))' in GUI
+    assert 'reference_precise_values' in GUI
+    assert 'Confirming the unchanged rounded display' in GUI
     assert 'config_path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")' in GUI
     assert 'def _current_ratio_target(self):' in GUI
