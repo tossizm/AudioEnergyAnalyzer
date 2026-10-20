@@ -102,6 +102,11 @@ class DropArea(QFrame):
                 source=self._bundled_default()
                 cache.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
                 candidate=cache
+            elif candidate.resolve()!=cache.resolve():
+                # Migrate previously selected external/default paths into the
+                # writable selected_config.json so ratio edits always persist there.
+                cache.write_text(candidate.read_text(encoding="utf-8"), encoding="utf-8")
+                candidate=cache
             settings.setValue("selected_config_path", str(candidate))
         self.config_path=candidate
         self._update_applied()
