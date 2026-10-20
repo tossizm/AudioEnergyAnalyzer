@@ -468,6 +468,11 @@ class RatioReferencePage(QWidget):
         vals=[float(v) for v in values]
         if len(vals)!=10:
             vals=[10.0]*10
+        # Display two decimals while keeping the displayed total exactly 100.00%.
+        vals=[round(v,2) for v in vals]
+        correction=round(100.0-sum(vals),2)
+        if correction:
+            vals[int(np.argmax(vals))]+=correction
         for edit,v in zip(self.inputs,vals): edit.setText(f"{float(v):.2f}")
         self._validate()
 
