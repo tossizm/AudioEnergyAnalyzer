@@ -12,10 +12,12 @@ def test_ffmpeg_is_downloaded_when_missing_and_saved_to_runtime_folder():
     assert 'if executable.is_file() and executable.stat().st_size > 0:' in MAIN
 
 
-def test_artifact_upload_is_a_zip_with_one_top_level_application_folder():
+def test_artifact_uploads_one_root_folder_without_nested_zip():
     assert 'name: AudioEnergyAnalyzer-${{ github.run_number }}' in WORKFLOW
-    assert 'path: AudioEnergyAnalyzer-${{ github.run_number }}.zip' in WORKFLOW
+    assert 'path: package/' in WORKFLOW
     assert 'package/AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe' in WORKFLOW
-    assert 'Compress-Archive -Path "package/AudioEnergyAnalyzer" -DestinationPath $zip' in WORKFLOW
-    assert 'Create and verify numbered ZIP' in WORKFLOW
+    assert 'Compress-Archive' not in WORKFLOW
+    assert 'Verify single-root package folder without nested ZIP' in WORKFLOW
     assert 'AudioEnergyAnalyzer/AudioEnergyAnalyzer.exe' in WORKFLOW
+    assert 'Nested ZIP files are forbidden in the package.' in WORKFLOW
+    assert 'without wrapping a ZIP inside another ZIP' in WORKFLOW
