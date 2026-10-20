@@ -29,7 +29,7 @@ def test_normal_audio_progress_combines_load_and_analysis_to_single_0_100_bar():
 def test_wav_aiff_loading_reports_fine_grained_progress():
     assert 'emit("load",0)' in PIPE
     assert 'load_audio(path,lambda p:emit("load",p))' in PIPE
-    assert 'block=16384' in SPECTRUM
+    assert 'block=65536' in SPECTRUM
 
 
 def test_main_window_is_resizable_while_preserving_initial_size():
