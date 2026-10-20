@@ -108,13 +108,18 @@ def _load_compressed_with_pyav(path, progress=None):
 def _load_soundfile(path, progress=None):
     with sf.SoundFile(str(path)) as f:
         sr=f.samplerate; channels=f.channels; total=len(f)
-        blocks=[]; done=0; block=16384
-        while True:
-            x=f.read(block,dtype="float32",always_2d=True)
+        # Allocate the final PCM buffer once instead of retaining all blocks and
+        # copying them again with vstack (large WAV/AIFF files otherwise peak at
+        # roughly twice their decoded size in RAM).
+        audio=np.empty((total,channels),dtype=np.float32)
+        done=0; block=65536
+        while done<total:
+            x=f.read(min(block,total-done),dtype="float32",always_2d=True)
             if len(x)==0: break
-            blocks.append(x); done+=len(x)
+            audio[done:done+len(x)]=x
+            done+=len(x)
             if progress and total: progress(min(100,int(done/total*100)))
-    return np.vstack(blocks) if blocks else np.empty((0,channels),dtype=np.float32),sr
+    return audio[:done],sr
 
 
 def load_audio(path: Path, progress=None):
