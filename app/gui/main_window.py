@@ -695,7 +695,7 @@ class RatioEQWorker(QObject):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Club Audio Analyzer")
+        self.setWindowTitle("AudioEnergyAnalyzer EQ")
         self.resize(1100,550)
         self.setMinimumSize(700,400)
         base=QFont("Segoe UI")
