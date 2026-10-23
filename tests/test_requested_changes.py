@@ -38,3 +38,8 @@ def test_default_reference_values_match_uploaded_reference():
     assert config["target_db"] == [5.0, 7.5, 3.75, 3.0, 2.5, 2.0, 1.25, -0.25, -1.0, -23.75]
     assert config["bpm"] == 155
     assert config["genre"] == "General Club"
+
+
+def test_application_window_title_is_audio_energy_analyzer_eq():
+    gui = (ROOT / "app" / "gui" / "main_window.py").read_text(encoding="utf-8")
+    assert 'self.setWindowTitle("AudioEnergyAnalyzer EQ")' in gui
